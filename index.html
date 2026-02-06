@@ -31,7 +31,7 @@ async function sendMessage() {
     });
 
     const data = await response.json();
-    const reply = data.answer || data.antwort || JSON.stringify(data);
+    const reply = data.output || data.antwort || JSON.stringify(data);
     chat.innerHTML += `<div class="bot">Bot: ${reply}</div>`;
   } catch (err) {
     chat.innerHTML += `<div class="bot">Fehler: ${err}</div>`;
