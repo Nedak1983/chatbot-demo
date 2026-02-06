@@ -5,59 +5,50 @@
 <title>Chatbot Test</title>
 <style>
   body { font-family: Arial; margin: 40px; }
-  #chat { border: 1px solid #ccc; padding: 10px; width: 400px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
-  #userInput { width: 300px; }
-  .user { color: blue; margin-bottom: 5px; }
-  .bot { color: green; margin-bottom: 5px; }
+  #chat { border: 1px solid #ccc; padding: 10px; width: 400px; height: 300px; overflow-y: auto; margin-bottom: 10px; }
+  .user { color: blue; }
+  .bot { color: green; }
 </style>
 </head>
 <body>
+
 <h2>Chatbot Test</h2>
 <div id="chat"></div>
-<input type="text" id="userInput" placeholder="Schreibe etwas...">
+
+<input id="userInput" placeholder="Schreibe etwas..." />
 <button onclick="sendMessage()">Senden</button>
 
 <script>
 async function sendMessage() {
-  const input = document.getElementById('userInput');
-  const chat = document.getElementById('chat');
-  const text = input.value.trim();
-  if (!text) return;
+  const input = document.getElementById("userInput");
+  const chat = document.getElementById("chat");
+  const message = input.value;
 
-  // User-Nachricht anzeigen
-  chat.innerHTML += `<div class="user">Du: ${text}</div>`;
-  input.value = '';
+  if (!message) return;
+
+  chat.innerHTML += `<div class="user">Du: ${message}</div>`;
+  input.value = "";
 
   try {
-    const response = await fetch('https://vait.app.n8n.cloud/webhook/1046e82e-5bb3-47c9-bf4c-ae8c44e0909c/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chatInput: text })
-    });
+    const response = await fetch(
+      "https://vait.app.n8n.cloud/webhook/1046e82e-5bb3-47c9-bf4c-ae8c44e0909c/chat",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chatInput: message   // ✅ DAS ist der Fix
+        })
+      }
+    );
 
-    const rawText = await response.text();
-
-let data;
-try {
-  data = JSON.parse(rawText);
-} catch (e) {
-  throw new Error("Server antwortet nicht mit JSON: " + rawText);
-}
-    // Nur den Text ausgeben, nicht das ganze JSON
-    const reply = data.output || data.antwort || "Keine Antwort erhalten";
-    chat.innerHTML += `<div class="bot">Bot: ${reply}</div>`;
-
-  } catch (err) {
-    chat.innerHTML += `<div class="bot">Fehler: ${err.message}</div>`;
+    const data = await response.json();
+    chat.innerHTML += `<div class="bot">Bot: ${data.output}</div>`;
+  } catch (e) {
+    chat.innerHTML += `<div class="bot">Fehler: ${e.message}</div>`;
   }
 
   chat.scrollTop = chat.scrollHeight;
 }
-
-// Enter-Taste senden
-document.getElementById('userInput').addEventListener("keypress", function(e) {
-  if (e.key === "Enter") sendMessage();
-});
 </script>
 
 </body>
