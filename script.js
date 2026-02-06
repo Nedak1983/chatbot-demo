@@ -33,7 +33,7 @@ async function sendMessage() {
   addMessage(text, "user");
   input.value = "";
 
-  const response = await fetch("HIER_DEINE_N8N_WEBHOOK_URL", {
+  const response = await fetch("https://vait.app.n8n.cloud/webhook/1046e82e-5bb3-47c9-bf4c-ae8c44e0909c/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -52,3 +52,4 @@ sendBtn.onclick = sendMessage;
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendMessage();
 });
+
