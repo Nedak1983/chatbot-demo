@@ -2,31 +2,78 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Chatbot Test</title>
+<title>KnowHowBot – Test</title>
+
 <style>
-  body { font-family: Arial; margin: 40px; }
-  #chat { border: 1px solid #ccc; padding: 10px; width: 400px; height: 300px; overflow-y: auto; margin-bottom: 10px; }
-  .user { color: blue; }
-  .bot { color: green; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    padding: 40px;
+  }
+
+  #chatbox {
+    width: 420px;
+    height: 400px;
+    border: 1px solid #ccc;
+    background: #fff;
+    padding: 10px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+  }
+
+  .user {
+    color: #1a73e8;
+    margin: 6px 0;
+    text-align: right;
+  }
+
+  .bot {
+    color: #0b8043;
+    margin: 6px 0;
+    text-align: left;
+  }
+
+  #inputRow {
+    display: flex;
+    gap: 6px;
+  }
+
+  #userInput {
+    flex: 1;
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  button {
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+  }
 </style>
 </head>
+
 <body>
 
-<h2>Chatbot Test</h2>
-<div id="chat"></div>
+<h2>🤖 KnowHowBot – Demo</h2>
 
-<input id="userInput" placeholder="Schreibe etwas..." />
-<button onclick="sendMessage()">Senden</button>
+<div id="chatbox"></div>
+
+<div id="inputRow">
+  <input id="userInput" type="text" placeholder="Nachricht eingeben …">
+  <button onclick="sendMessage()">Senden</button>
+</div>
 
 <script>
 async function sendMessage() {
   const input = document.getElementById("userInput");
-  const chat = document.getElementById("chat");
-  const message = input.value;
+  const chatbox = document.getElementById("chatbox");
+  const message = input.value.trim();
 
   if (!message) return;
 
-  chat.innerHTML += `<div class="user">Du: ${message}</div>`;
+  // User anzeigen
+  chatbox.innerHTML += `<div class="user">Du: ${message}</div>`;
+  chatbox.scrollTop = chatbox.scrollHeight;
   input.value = "";
 
   try {
@@ -34,21 +81,46 @@ async function sendMessage() {
       "https://vait.app.n8n.cloud/webhook/1046e82e-5bb3-47c9-bf4c-ae8c44e0909c/chat",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
-          chatInput: message   // ✅ DAS ist der Fix
+          chatInput: message   // 🔴 WICHTIG für n8n Chat Trigger
         })
       }
     );
 
-    const data = await response.json();
-    chat.innerHTML += `<div class="bot">Bot: ${data.output}</div>`;
-  } catch (e) {
-    chat.innerHTML += `<div class="bot">Fehler: ${e.message}</div>`;
+    const rawText = await response.text();
+    console.log("RAW RESPONSE:", rawText);
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      throw new Error("Server antwortet nicht mit JSON");
+    }
+
+    const reply =
+      data.output ||
+      data.text ||
+      data.response ||
+      data.answer ||
+      "⚠️ Keine Antwort vom Bot erhalten";
+
+    chatbox.innerHTML += `<div class="bot">Bot: ${reply}</div>`;
+  } catch (error) {
+    chatbox.innerHTML += `<div class="bot">❌ Fehler: ${error.message}</div>`;
   }
 
-  chat.scrollTop = chat.scrollHeight;
+  chatbox.scrollTop = chatbox.scrollHeight;
 }
+
+// Enter-Taste
+document.getElementById("userInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    sendMessage();
+  }
+});
 </script>
 
 </body>
